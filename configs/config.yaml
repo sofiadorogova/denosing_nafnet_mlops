@@ -1,0 +1,7 @@
+defaults:
+  - model: nafnet
+  - data: sidd
+  - train: default
+  - augment: default
+  - logger: mlflow
+  - _self_

@@ -1,0 +1,8 @@
+stages:
+  download:
+    cmd: poetry run python scripts/download_data.py
+    deps:
+      - scripts/download_data.py
+    outs:
+      - data/raw/SIDD_Small_sRGB_Only:
+          cache: true
