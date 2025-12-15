@@ -11,4 +11,13 @@ poetry run pre-commit install
 
 ## Data
 
-Data is managed via DVC. To download SIDD-Small:
+Dataset: [SIDD-Small (sRGB only)](http://130.63.97.225/share/SIDD_Small_sRGB_Only.zip)
+Size: ~7.5 GB, 160 noisy/clean image pairs.
+
+To download:
+
+```bash
+poetry run python scripts/download_data.py
+```
+
+or equivalently: `poetry run dvc repro`
