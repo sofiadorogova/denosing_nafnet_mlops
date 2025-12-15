@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  download:
+    cmd: poetry run python scripts/download_data.py
+    deps:
+    - path: scripts/download_data.py
+      hash: md5
+      md5: 8ad279ceb961710c5781cb8b81c448e7
+      size: 1729
+    outs:
+    - path: data/raw/SIDD_Small_sRGB_Only
+      hash: md5
+      md5: fca9b217ac947fc452f33c03208d65c8.dir
+      size: 6615530589
+      nfiles: 322
