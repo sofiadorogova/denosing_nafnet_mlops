@@ -4,9 +4,12 @@ version = "0.1.0"
 description = "MLOps pipeline for image denoising with NAFNet and DnCNN"
 authors = ["Dorogova Sofia <dorogova.siu@phystech.edu>"]
 license = "MIPT"
+packages = [
+    { include = "denoising", from = "src" },
+]
 
 [tool.poetry.dependencies]
-python = "3.12.10"
+python = "3.10.12"
 torch = "^2.3"
 torchvision = "^0.18"
 pytorch-lightning = "^2.2"
