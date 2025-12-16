@@ -8,9 +8,38 @@ from torchvision.io import ImageReadMode, read_image
 
 
 class SIDD_Loader(Dataset[tuple[torch.Tensor, torch.Tensor]]):
-    """
-    SIDD Dataset Loader для denoising.
-    Load pairs (noisy, clean) and implement random crop.
+    """Dataset loader for SIDD (Smartphone Image Denoising Dataset).
+
+    Loads paired noisy and ground-truth clean images and applies
+    deterministic random cropping for training/evaluation.
+
+    The dataset structure is expected to follow the official SIDD-Small layout:
+    ```
+    dataset_path/
+    ├── Scene_Instances.txt  # list of scene folder names
+    └── Data/
+        ├── Scene1/
+        │   ├── NOISY_SRGB_001.PNG
+        │   └── GT_SRGB_001.PNG
+        ├── Scene2/
+        │   ├── NOISY_SRGB_001.PNG
+        │   └── GT_SRGB_001.PNG
+        └── ...
+    ```
+
+    If `Scene_Instances.txt` is missing, folder names under `Data/` will be
+    sorted lexicographically to ensure reproducibility.
+
+    Example:
+        >>> dataset = SIDD_Loader("/path/to/SIDD_Small_sRGB_Only", crop_size=512, seed=42)
+        >>> noisy, clean = dataset[0]
+        >>> print(noisy.shape)  # torch.Size([3, 512, 512])
+        >>> print(noisy.min(), noisy.max())  # e.g. 0.013, 0.987 — normalized to [0, 1]
+
+    Note:
+        - All images are loaded in sRGB and normalized to `[0, 1]`.
+        - Cropping is reproducible: same `index + seed` --> same `(i, j)`.
+        - Input images must be ≥ `crop_size` in both dimensions.
     """
 
     def __init__(
@@ -37,9 +66,27 @@ class SIDD_Loader(Dataset[tuple[torch.Tensor, torch.Tensor]]):
             )
 
     def __len__(self) -> int:
+        """Return number of scene instances in the dataset."""
         return len(self.folder_names)
 
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """Load and preprocess a (noisy, clean) image pair.
+
+        Applies reproducible random cropping to both images using the same
+        `(i, j)` coordinates.
+
+        Args:
+            index (int): Index of the scene instance.
+
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]:
+                - Noisy image: `[3, crop_size, crop_size]`, dtype `float32`, range `[0, 1]`
+                - Clean (GT) image: same shape and dtype
+
+        Raises:
+            FileNotFoundError: If `NOISY_*` or `GT_*` files are missing in the scene folder.
+            ValueError: If image dimensions are smaller than `crop_size`.
+        """
         scene_dir = self.dataset_path / "Data" / self.folder_names[index]
 
         try:
@@ -68,14 +115,45 @@ class SIDD_Loader(Dataset[tuple[torch.Tensor, torch.Tensor]]):
 
     @staticmethod
     def _load_image(path: Path) -> torch.Tensor:
-        """Load sRGB image, normalize to [0, 1]."""
+        """Load an sRGB image and normalize pixel values to [0, 1].
+
+        Args:
+            path (Path): Path to PNG image file.
+
+        Returns:
+            torch.Tensor: RGB image, shape `[3, H, W]`, dtype `float32`, values in `[0, 1]`.
+        """
         return read_image(str(path), mode=ImageReadMode.RGB).float() / 255.0
 
     def __repr__(self) -> str:
+        """Return string representation of the dataset."""
         return f"SIDD_Loader(root='{self.dataset_path}', format='{self.format}', size={len(self)})"
 
 
 class SIDDDataModule(LightningDataModule):
+    """PyTorch Lightning DataModule for SIDD denoising experiments.
+
+    Handles dataset splitting, DataLoader creation, and reproducible setup.
+
+    Splits data as:
+        - **Test**: First `test_size` samples (fixed, for final evaluation)
+        - **Train/Val**: Remaining samples split by `val_ratio`
+
+    All randomness is controlled by the `seed` parameter.
+
+    Example:
+        >>> dm = SIDDDataModule(
+        ...     root_dir="/path/to/SIDD_Small_sRGB_Only",
+        ...     batch_size=4,
+        ...     seed=42
+        ... )
+        >>> dm.setup()
+        >>> train_loader = dm.train_dataloader()
+        >>> for noisy, clean in train_loader:
+        ...     print(noisy.shape)  # [4, 3, 512, 512]
+        ...     break
+    """
+
     def __init__(
         self,
         root_dir: str,
@@ -92,8 +170,18 @@ class SIDDDataModule(LightningDataModule):
         self.train_dataset = self.val_dataset = self.test_dataset = None
 
     def setup(self, stage: str | None = None) -> None:
-        """
-        Setup test, train, val subsets for model
+        """Prepare datasets for train/validation/test.
+
+        Split logic:
+            1. Full dataset = all samples
+            2. Test set = first `test_size` samples (fixed)
+            3. Remaining = train + val (split by `val_ratio`)
+
+        Args:
+            stage (str | None, optional): Unused (kept for Lightning compatibility).
+
+        Side Effects:
+            Sets `self.train_dataset`, `self.val_dataset`, `self.test_dataset`.
         """
         full_dataset = SIDD_Loader(
             self.hparams.root_dir, self.hparams.format, self.hparams.crop_size
@@ -120,6 +208,15 @@ class SIDDDataModule(LightningDataModule):
         self.test_dataset = Subset(full_dataset, test_indices)
 
     def train_dataloader(self) -> DataLoader:
+        """Create training DataLoader.
+
+        Returns:
+            DataLoader: Training data loader with:
+                - `shuffle=True`
+                - `pin_memory=True` (for GPU transfer speed)
+                - `persistent_workers=True` (if `num_workers > 0`)
+                - Worker seeds = `seed + worker_id`
+        """
         return DataLoader(
             self.train_dataset,
             batch_size=self.hparams.batch_size,
@@ -131,7 +228,19 @@ class SIDDDataModule(LightningDataModule):
         )
 
     def val_dataloader(self) -> DataLoader:
+        """Create validation DataLoader.
+
+        Returns:
+            DataLoader: Validation data loader with:
+                - `batch_size=1` (for fair PSNR/SSIM per-image evaluation)
+                - `shuffle=False`
+        """
         return DataLoader(self.val_dataset, batch_size=1, num_workers=1, shuffle=False)
 
     def test_dataloader(self) -> DataLoader:
+        """Create test DataLoader.
+
+        Returns:
+            DataLoader: Test data loader (same as validation loader).
+        """
         return DataLoader(self.test_dataset, batch_size=1, num_workers=1, shuffle=False)
