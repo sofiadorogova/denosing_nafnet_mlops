@@ -4,7 +4,21 @@ import torch.nn.functional as F
 
 
 class LayerNorm2d(nn.Module):
-    """LayerNorm for 4D tensors (N, C, H, W)."""
+    """Channel-wise Layer Normalization for 4D tensors (N, C, H, W).
+
+    Implements LayerNorm over the channel dimension (C) for image tensors.
+    Uses PyTorch's native ``F.layer_norm`` for ONNX/TensorRT compatibility.
+
+    Note:
+        This is a simplified, export-friendly alternative to the custom autograd
+        function used in the original NAFNet implementation. It produces nearly
+        identical results while guaranteeing compatibility with ONNX and TensorRT.
+
+    Example:
+        >>> x = torch.randn(2, 64, 32, 32)
+        >>> layer_norm = LayerNorm2d(64)
+        >>> y = layer_norm(x)  # y.shape == x.shape
+    """
 
     def __init__(self, channels: int, eps: float = 1e-6) -> None:
         super().__init__()
@@ -13,7 +27,16 @@ class LayerNorm2d(nn.Module):
         self.eps = eps
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # [N, C, H, W] --> [N, H, W, C] --> LayerNorm --> [N, C, H, W]
+        """Apply layer normalization over channel dimension.
+
+        Converts (N, C, H, W) → (N, H, W, C), applies LayerNorm, then back.
+
+        Args:
+            x (torch.Tensor): Input tensor, shape `[N, C, H, W]`.
+
+        Returns:
+            torch.Tensor: Normalized tensor, same shape as input.
+        """
         return F.layer_norm(
             x.permute(0, 2, 3, 1),
             normalized_shape=(self.weight.shape[0],),
@@ -24,12 +47,56 @@ class LayerNorm2d(nn.Module):
 
 
 class SimpleGate(nn.Module):
+    """Simplified Gating Mechanism from NAFNet (Nonlinear Activation-Free Networks).
+
+    Splits the input channel-wise and multiplies the two halves:
+    ```
+    x1, x2 = x.chunk(2, dim=1)
+    return x1 * x2
+    ```
+
+    Replaces ReLU/GELU in deep residual blocks while preserving representational
+    capacity and improving gradient flow.
+
+    Example:
+        >>> x = torch.randn(1, 64, 32, 32)
+        >>> gate = SimpleGate()
+        >>> y = gate(x)  # y.shape == [1, 32, 32, 32]
+    """
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply simple gating.
+
+        Args:
+            x (torch.Tensor): Input tensor with even number of channels.
+
+        Returns:
+            torch.Tensor: Gated output, shape `[N, C/2, H, W]`.
+        """
         x1, x2 = x.chunk(2, dim=1)
         return x1 * x2
 
 
 class NAFBlock(nn.Module):
+    r"""Nonlinear Activation-Free Residual Block (core unit of NAFNet).
+
+    Based on the architecture proposed in:
+        Chen et al., Simple Baselines for Image Restoration, arXiv:2204.04676
+
+    Args:
+        in_channels (int): Number of input/output channels.
+        dw_expand (int, optional): Channel expansion factor for depth-wise conv.
+            Defaults to 2.
+        ffn_expand (int, optional): Channel expansion for feed-forward network.
+            Defaults to 2.
+        drop_out_rate (float, optional): Dropout probability. Defaults to 0.0.
+
+    Example:
+        >>> block = NAFBlock(64, dw_expand=2, ffn_expand=2)
+        >>> x = torch.randn(1, 64, 32, 32)
+        >>> y = block(x)  # y.shape == x.shape
+    """
+
     def __init__(
         self, in_channels: int, dw_expand: int = 2, ffn_expand: int = 2, drop_out_rate: float = 0.0
     ) -> None:
@@ -60,6 +127,14 @@ class NAFBlock(nn.Module):
         self.gamma = nn.Parameter(torch.zeros(1, in_channels, 1, 1))
 
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
+        """Forward pass with dual residual connections.
+
+        Args:
+            inp (torch.Tensor): Input feature map, shape `[N, C, H, W]`.
+
+        Returns:
+            torch.Tensor: Output feature map, same shape as input.
+        """
         x = inp
         x = self.norm1(x)
         x = self.conv1(x)
@@ -79,6 +154,36 @@ class NAFBlock(nn.Module):
 
 
 class NAFNet(nn.Module):
+    """Nonlinear Activation-Free Network for single-image restoration.
+
+    U-Net style encoder-decoder architecture composed entirely of NAFBlocks.
+    Designed for image denoising, deblurring, and super-resolution.
+
+    References:
+        - Official code: https://github.com/megvii-research/NAFNet
+     Args:
+        img_channel (int, optional): Number of input/output image channels.
+            Defaults to 3 (RGB).
+        width (int, optional): Base channel width (number of channels after intro conv).
+            Defaults to 32.
+        middle_blk_num (int, optional): Number of NAFBlocks in bottleneck.
+            Defaults to 12.
+        enc_blk_nums (list[int] | None, optional): Number of NAFBlocks per encoder stage.
+            Defaults to `[1, 1, 1, 28]` (NAFNet-S).
+        dec_blk_nums (list[int] | None, optional): Number of NAFBlocks per decoder stage.
+            Defaults to `[1, 1, 1, 1]`.
+
+    Shape:
+        - Input: `[N, C, H, W]`
+        - Output: `[N, C, H, W]` (same as input)
+
+    Example:
+        >>> model = NAFNet(width=32, enc_blk_nums=[2, 2, 4, 8], dec_blk_nums=[2, 2, 2, 2])
+        >>> x = torch.randn(1, 3, 512, 512)
+        >>> y = model(x)  # y.shape == x.shape
+        >>> assert torch.allclose(x, y, atol=1e-6)  # only if no noise
+    """
+
     def __init__(
         self,
         img_channel: int = 3,
