@@ -3,19 +3,23 @@ from pathlib import Path
 
 import requests
 
+
 URL = "http://130.63.97.225/share/SIDD_Small_sRGB_Only.zip"
 DATA_DIR = Path("data/raw")
 ZIP_PATH = DATA_DIR / "SIDD_Small_sRGB_Only.zip"
 EXTRACT_DIR = DATA_DIR / "SIDD_Small_sRGB_Only"
 
 
-def download_sidd_small():
+def download_sidd_small() -> None:
+    """
+    Download SIDD Small Dataset in local folder: data/raw/SIDD_Small_sRGB_Only
+    """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     # 1. Скачиваем ZIP
     if not ZIP_PATH.exists():
         print("Downloading SIDD-Small (7.5 GB) from official server...")
-        with requests.get(URL, stream=True) as r:
+        with requests.get(URL, stream=True, timeout=10) as r:
             r.raise_for_status()
             total_size = int(r.headers.get("content-length", 0))
             with open(ZIP_PATH, "wb") as f:
