@@ -1,22 +1,21 @@
 """
-Model registry and high-level imports for denoising models.
+Denoising models registry.
 
-This module exposes the main model classes for external use:
-    - `NAFNet`: Core architecture (pure `nn.Module`)
-    - `DnCNN`: Baseline denoising model (pure `nn.Module`)
-    - `NAFDenoisingModule`: Lightning wrapper for NAFNet (to be added)
-    - `DnCNNLightningModule`: Lightning wrapper for DnCNN (to be added)
-
-All models are importable as:
-    >>> from src.denoising.models import NAFNet, DnCNN, NAFDenoisingModule, DnCNNLightningModule
+Exports:
+    - Core architectures: `NAFNet`, `DnCNN`
+    - Unified training wrapper: `DenoisingModule`
+    - Custom loss: `PSNRLoss`
 """
 
+from .base_module import DenoisingModule
 from .dncnn import DnCNN
+from .loss import PSNRLoss
 from .nafnet import NAFNet
 
 
-# Optional: register models for hydra instantiate (if used later)
 __all__ = [
     "NAFNet",
     "DnCNN",
+    "DenoisingModule",
+    "PSNRLoss",
 ]
