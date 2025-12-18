@@ -31,6 +31,7 @@ def get_model(cfg: DictConfig) -> DenoisingModule:
     return DenoisingModule(
         model=model,
         optimizer_config=cfg.train.optimizer,
+        scheduler_config=cfg.train.scheduler,
         loss_type=cfg.train.loss_type,
     )
 

@@ -19,7 +19,13 @@ class DenoisingModule(LightningModule):
     Accepts any nn.Module that maps (noisy) → (denoised) with same input/output shape.
     """
 
-    def __init__(self, model: NAFNet | DnCNN, optimizer_config: dict, loss_type: str = "psnr"):
+    def __init__(
+        self,
+        model: NAFNet | DnCNN,
+        optimizer_config: dict,
+        scheduler_config: dict | None = None,
+        loss_type: str = "psnr",
+    ):
         super().__init__()
         self.save_hyperparameters(ignore=["model"])  # model too big for hparams
         self.model = model
@@ -66,7 +72,7 @@ class DenoisingModule(LightningModule):
         optimizer = optimizer_class(self.parameters(), **opt_cfg)
 
         # 2. Scheduler
-        scheduler_config = self.hparams.get("scheduler", {})
+        scheduler_config = self.hparams.scheduler_config
         if scheduler_config:
             sched_cfg = OmegaConf.to_container(scheduler_config, resolve=True)
             scheduler_type = sched_cfg.pop("type", "CosineAnnealingLR")
