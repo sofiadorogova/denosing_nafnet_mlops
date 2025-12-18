@@ -31,7 +31,7 @@ def get_model(cfg: DictConfig) -> DenoisingModule:
     return DenoisingModule(
         model=model,
         optimizer_config=cfg.train.optimizer,
-        loss_type=cfg.train.get("loss_type", "l1"),
+        loss_type=cfg.train.loss_type,
     )
 
 
@@ -46,7 +46,7 @@ def train_model(cfg: DictConfig):
         - ONNX/TensorRT export readiness
     """
     # ─────────────── 1. Reproducibility ───────────────
-    pl.seed_everything(cfg.model.seed, workers=True)
+    pl.seed_everything(cfg.seed, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
@@ -58,7 +58,7 @@ def train_model(cfg: DictConfig):
         data_format=cfg.data.format,
         val_ratio=cfg.data.val_ratio,
         test_size=cfg.data.test_size,
-        seed=cfg.model.seed,
+        seed=cfg.seed,
         crop_size=cfg.data.crop_size,
     )
     datamodule.setup()
@@ -103,7 +103,8 @@ def train_model(cfg: DictConfig):
     trainer = Trainer(
         default_root_dir=str(run_dir),
         max_steps=cfg.train.max_steps,
-        val_check_interval=cfg.train.val_check_interval,
+        gradient_clip_val=cfg.train.get("gradient_clip_val", 0.0),
+        check_val_every_n_epoch=cfg.train.get("check_val_every_n_epoch", 1),
         log_every_n_steps=cfg.logger.print_freq,
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices=1,

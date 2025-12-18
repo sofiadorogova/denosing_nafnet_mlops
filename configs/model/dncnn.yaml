@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - base
+
+name: dncnn
+
+model:
+  name: dncnn
+  _target_: denoising.models.DnCNN
+  model_config:
+    in_channels: 3
+    out_channels: 3
+    depth: 17
+    n_filters: 64

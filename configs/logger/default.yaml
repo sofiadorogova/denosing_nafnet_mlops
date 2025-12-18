@@ -1,0 +1,4 @@
+print_freq: 10
+mlflow:
+  experiment_name: denoising_nafnet_mlops
+  tracking_uri: http://127.0.0.1:8080
