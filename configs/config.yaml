@@ -1,6 +1,6 @@
 defaults:
   - model: nafnet
   - data: sidd
-  - train: default
+  - train: nafnet
   - logger: default
   - _self_
