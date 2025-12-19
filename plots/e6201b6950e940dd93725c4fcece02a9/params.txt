@@ -1,0 +1,45 @@
+batch_size: 4
+crop_size: 512
+data/batch_size: 4
+data/crop_size: 512
+data/dataset_path: data/raw/SIDD_Small_sRGB_Only
+data/format: sRGB
+data/num_workers: 4
+data/test_size: 10
+data/val_ratio: 0.2
+data_format: sRGB
+logger/mlflow/experiment_name: denoising_nafnet_mlops
+logger/mlflow/tracking_uri: http://127.0.0.1:8080
+logger/print_freq: 10
+loss_type: mse
+model/_target_: denoising.models.DnCNN
+model/model_config/depth: 10
+model/model_config/in_channels: 3
+model/model_config/n_filters: 32
+model/model_config/out_channels: 3
+model/name: dncnn
+name: dncnn
+num_workers: 4
+optimizer_config/_target_: AdamW
+optimizer_config/betas: [0.9, 0.999]
+optimizer_config/lr: 0.0005
+optimizer_config/weight_decay: 0.0
+root_dir: data/raw/SIDD_Small_sRGB_Only
+scheduler_config/gamma: 0.1
+scheduler_config/milestones: [30, 60]
+scheduler_config/type: MultiStepLR
+seed: 10
+test_size: 10
+train/check_val_every_n_epoch: 5
+train/early_stop_min_delta: 0.01
+train/early_stop_patience: 5
+train/loss_type: mse
+train/max_steps: 10000
+train/optimizer/_target_: AdamW
+train/optimizer/betas: [0.9, 0.999]
+train/optimizer/lr: 0.0005
+train/optimizer/weight_decay: 0.0
+train/scheduler/gamma: 0.1
+train/scheduler/milestones: [30, 60]
+train/scheduler/type: MultiStepLR
+val_ratio: 0.2
