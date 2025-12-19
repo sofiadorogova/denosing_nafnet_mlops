@@ -1,0 +1,7 @@
+dataset_path: data/raw/SIDD_Small_sRGB_Only
+format: sRGB
+batch_size: 4
+num_workers: 4
+val_ratio: 0.2
+test_size: 10
+crop_size: 512

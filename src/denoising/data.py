@@ -52,7 +52,7 @@ class SIDD_Loader(Dataset[tuple[torch.Tensor, torch.Tensor]]):
         self.dataset_path = Path(dataset_path)
         self.seed = seed
         if data_format not in ["sRGB"]:
-            raise ValueError(f"Unsupported format: {format}. Only 'sRGB' is supported.")
+            raise ValueError(f"Unsupported format: {data_format}. Only 'sRGB' is supported.")
         self.format = data_format
         self.crop_size = crop_size
 
@@ -184,7 +184,7 @@ class SIDDDataModule(LightningDataModule):
             Sets `self.train_dataset`, `self.val_dataset`, `self.test_dataset`.
         """
         full_dataset = SIDD_Loader(
-            self.hparams.root_dir, self.hparams.format, self.hparams.crop_size
+            self.hparams.root_dir, self.hparams.data_format, self.hparams.crop_size
         )
         total = len(full_dataset)
         generator = torch.Generator().manual_seed(self.hparams.seed)

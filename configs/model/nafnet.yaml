@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - base
+
+name: nafnet
+
+model:
+  name: nafnet
+  _target_: denoising.models.NAFNet
+  model_config:
+    img_channel: 3
+    width: 32
+    enc_blk_nums: [2, 2, 4, 8]
+    middle_blk_num: 12
+    dec_blk_nums: [2, 2, 2, 2]

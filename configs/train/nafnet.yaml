@@ -1,7 +1,8 @@
-max_epochs: 80
-check_val_every_n_epoch: 5
+max_steps: 10000
+check_val_every_n_epoch: 20
 early_stop_patience: 5
 early_stop_min_delta: 0.01
+gradient_clip_val: 1.0
 optimizer:
   _target_: AdamW
   lr: 1.0e-3

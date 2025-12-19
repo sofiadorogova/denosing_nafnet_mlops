@@ -185,3 +185,4 @@ data/
 artifacts/
 .dvc/cache/
 .dvc/tmp/
+mlruns/
