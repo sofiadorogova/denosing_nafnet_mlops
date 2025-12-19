@@ -58,7 +58,7 @@ artifacts/
         └── model_final.pth
 ```
 
-## Export
+## ONNX export
 
 Convert trained models to ONNX format for cross-platform inference and further optimization (TensorRT, OpenVINO, etc.):
 
@@ -77,4 +77,23 @@ artifacts/
 └── models/
     ├── nafnet.onnx
     └── dncnn.onnx
+```
+
+## TensorRT export
+
+Convert ONNX to optimized TensorRT engine (FP16):
+
+```bash
+./scripts/export_trt.sh artifacts/models/nafnet.onnx artifacts/models/nafnet.plan
+```
+
+```bash
+./scripts/export_trt.sh artifacts/models/dncnn.onnx artifacts/models/dncnn/.plan
+```
+
+## Prepare for Triton
+
+```bash
+mkdir -p models/nafnet/1
+cp artifacts/models/nafnet.plan models/nafnet/1/model.plan
 ```
