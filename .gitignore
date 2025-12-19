@@ -186,3 +186,9 @@ artifacts/
 .dvc/cache/
 .dvc/tmp/
 mlruns/
+
+
+artifacts/models/*.plan
+models/**/1/*.plan
+tensorrt.cache
+tensorrt.cache.lock

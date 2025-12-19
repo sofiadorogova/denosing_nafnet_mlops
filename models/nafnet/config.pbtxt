@@ -1,0 +1,27 @@
+name: "nafnet"
+platform: "tensorrt_plan"
+max_batch_size: 1
+input [
+  {
+    name: "noisy"
+    data_type: TYPE_FP32
+    format: FORMAT_NCHW
+    dims: [3, -1, -1]  # [C, H, W], H/W — динамические
+  }
+]
+output [
+  {
+    name: "denoised"
+    data_type: TYPE_FP32
+    dims: [3, -1, -1]
+  }
+]
+dynamic_batching {
+  max_queue_delay_microseconds: 100000
+}
+instance_group [
+  {
+    kind: KIND_GPU
+    count: 1
+  }
+]

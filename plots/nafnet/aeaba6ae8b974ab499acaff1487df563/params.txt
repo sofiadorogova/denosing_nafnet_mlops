@@ -1,0 +1,47 @@
+batch_size: 4
+crop_size: 512
+data/batch_size: 4
+data/crop_size: 512
+data/dataset_path: data/raw/SIDD_Small_sRGB_Only
+data/format: sRGB
+data/num_workers: 4
+data/test_size: 10
+data/val_ratio: 0.2
+data_format: sRGB
+logger/mlflow/experiment_name: denoising_nafnet_mlops
+logger/mlflow/tracking_uri: http://127.0.0.1:8080
+logger/print_freq: 10
+loss_type: psnr
+model/_target_: denoising.models.NAFNet
+model/model_config/dec_blk_nums: [2, 2, 2, 2]
+model/model_config/enc_blk_nums: [2, 2, 4, 8]
+model/model_config/img_channel: 3
+model/model_config/middle_blk_num: 12
+model/model_config/width: 32
+model/name: nafnet
+name: nafnet
+num_workers: 4
+optimizer_config/_target_: AdamW
+optimizer_config/betas: [0.9, 0.999]
+optimizer_config/lr: 0.001
+optimizer_config/weight_decay: 0.0
+root_dir: data/raw/SIDD_Small_sRGB_Only
+scheduler_config/T_max: 10000
+scheduler_config/eta_min: 1e-07
+scheduler_config/type: CosineAnnealingLR
+seed: 10
+test_size: 10
+train/check_val_every_n_epoch: 20
+train/early_stop_min_delta: 0.01
+train/early_stop_patience: 5
+train/gradient_clip_val: 1.0
+train/loss_type: psnr
+train/max_steps: 10000
+train/optimizer/_target_: AdamW
+train/optimizer/betas: [0.9, 0.999]
+train/optimizer/lr: 0.001
+train/optimizer/weight_decay: 0.0
+train/scheduler/T_max: 10000
+train/scheduler/eta_min: 1e-07
+train/scheduler/type: CosineAnnealingLR
+val_ratio: 0.2
