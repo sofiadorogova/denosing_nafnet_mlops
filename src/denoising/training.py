@@ -120,11 +120,9 @@ def train_model(cfg: DictConfig):
 
     # ─────────────── 7. Train ───────────────
     print(f"\nStarting training: {cfg.model.name}")
-    print(
-        f"   → Dataset: {len(datamodule.train_dataset)} train / {len(datamodule.val_dataset)} val"
-    )
-    print(f"   → Max steps: {cfg.train.max_steps}")
-    print(f"   → Checkpoints: {run_dir / 'checkpoints'}\n")
+    print(f" Dataset: {len(datamodule.train_dataset)} train / {len(datamodule.val_dataset)} val")
+    print(f" Max steps: {cfg.train.max_steps}")
+    print(f" Checkpoints: {run_dir / 'checkpoints'}\n")
 
     trainer.fit(model, datamodule=datamodule)
 
@@ -133,8 +131,11 @@ def train_model(cfg: DictConfig):
     final_weights = run_dir / "model_final.pth"
     torch.save(model.model.state_dict(), final_weights)
 
+    # torch.save({
+    #    "state_dict": model.model.state_dict(),
+    #    "model_config": cfg.model.model_config,
+    #    "model_name": cfg.model.name,
+    # }, final_weights)
+
     print(f"\nBest checkpoint: {best_ckpt}")
     print(f"Final weights: {final_weights}")
-    print(
-        f"\nTo export to ONNX: poetry run python commands.py export_onnx --ckpt_path='{best_ckpt}'"
-    )
