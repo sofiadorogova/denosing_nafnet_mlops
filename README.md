@@ -233,3 +233,10 @@ outputs/
         ├── clean_00.png
         └── denoised_00.png
 ```
+
+## 7. Results
+
+| Model   | PSNR (dB) | SSIM | Inference Time (A100) | Params |
+| :------ | :-------: | :--: | :-------------------: | :----: |
+| DnCNN   |   37.3    | 0.92 |        *0.7 ms*         |  198K  |
+| NAFNet  |   *38.6*    | 0.94 |        *6.2 ms*         |  9.1M  |
