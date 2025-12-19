@@ -20,6 +20,7 @@ docker run --gpus all --rm -v "$(pwd)":/workspace \
       --onnx='$ONNX_PATH' \
       --saveEngine='$PLAN_PATH' \
       --fp16 \
+      --shapes="noisy:1x3x512x512"\
       --workspace=4096 \
       --verbose=0 \
       --best \
