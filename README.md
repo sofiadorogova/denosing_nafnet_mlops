@@ -27,16 +27,16 @@ or equivalently: `poetry run dvc repro`
 Start training NAFNet:
 
 ```bash
-poetry run python commands.py train model=nafnet train=nafnet
+poetry run python commands.py train nafnet
 ```
 
 Train DnCNN baseline:
 
 ```bash
-poetry run python commands.py train model=dncnn train=dncnn
+poetry run python commands.py train dncnn
 ```
 
-## MLflow tracking
+### MLflow tracking
 
 Start MLflow server before training:
 
@@ -56,4 +56,25 @@ artifacts/
         │   ├── best-epoch=02-val/PSNR=38.12.ckpt
         │   └── last.ckpt
         └── model_final.pth
+```
+
+## Export
+
+Convert trained models to ONNX format for cross-platform inference and further optimization (TensorRT, OpenVINO, etc.):
+
+```bash
+# Export latest NAFNet checkpoint
+poetry run python commands.py export onnx nafnet
+
+# Export latest DnCNN checkpoint
+poetry run python commands.py export onnx dncnn
+```
+
+### Output
+
+```bash
+artifacts/
+└── models/
+    ├── nafnet.onnx
+    └── dncnn.onnx
 ```
