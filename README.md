@@ -5,7 +5,7 @@ _by Sofia Dorogova_
 
 ---
 
-## 🔬 Project Overview
+##  Project Overview
 
 ### Problem Statement
 
@@ -13,8 +13,8 @@ Real-world smartphone images captured in low-light conditions suffer from comple
 
 This project implements **real-image denoising** using two modern architectures:
 
-- **NAFNet** (Nonlinear Activation-Free Network, Chen et al. 2022): SOTA-quality, low-latency model leveraging _SimpleGate_ modules and no nonlinear activations in deep blocks.
-- **DnCNN** (Zhang et al. 2017): Classical residual CNN baseline for comparison.
+- **NAFNet** ([Nonlinear Activation-Free Network, Chen et al. 2022](https://github.com/megvii-research/NAFNet)): SOTA-quality, low-latency model leveraging _SimpleGate_ modules and no nonlinear activations in deep blocks.
+- **DnCNN** ([Zhang et al. 2017](https://github.com/cszn/DnCNN)): Classical residual CNN baseline for comparison.
 
 ### Industrial Relevance
 
@@ -54,7 +54,7 @@ This project implements **real-image denoising** using two modern architectures:
 
 ---
 
-## ⚙️ Technical Setup
+## Technical Setup
 
 ### 1. Setup
 
