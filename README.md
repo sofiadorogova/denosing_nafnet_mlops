@@ -81,6 +81,10 @@ artifacts/
 
 ## TensorRT export
 
+```bash
+chmod +x scripts/export_trt.sh
+```
+
 Convert ONNX to optimized TensorRT engine (FP16):
 
 ```bash
@@ -91,9 +95,52 @@ Convert ONNX to optimized TensorRT engine (FP16):
 ./scripts/export_trt.sh artifacts/models/dncnn.onnx artifacts/models/dncnn/.plan
 ```
 
-## Prepare for Triton
+## Infer
+
+Run denoising inference on real images using **Triton Inference Server** (production-ready, GPU-accelerated).
+
+### Prepare for Triton
+
+Скопируйте экспортированные `.plan`-файлы в структуру, ожидаемую Triton:
 
 ```bash
 mkdir -p models/nafnet/1
 cp artifacts/models/nafnet.plan models/nafnet/1/model.plan
+cp artifacts/models/dncnn.plan models/dncnn/1/model.plan
+```
+
+```bash
+chmod +x scripts/start_triton.sh
+```
+
+### Launch Triton Server
+
+```bash
+./scripts/start_triton.sh
+```
+
+### Inference run
+
+Inference can be run on any test sample (10 samples of SIDD test set), index of a sample varies from 0 to 9.
+
+```bash
+poetry run python commands.py infer triton nafnet 0
+poetry run python commands.py infer triton dncnn 0
+```
+
+### Results
+
+Results' structure:
+
+```bash
+outputs/
+└── triton/
+    ├── nafnet/
+    │   ├── noisy_00.png
+    │   ├── clean_00.png
+    │   └── denoised_00.png
+    └── dncnn/
+        ├── noisy_00.png
+        ├── clean_00.png
+        └── denoised_00.png
 ```
