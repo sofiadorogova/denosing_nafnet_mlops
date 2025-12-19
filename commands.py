@@ -8,6 +8,7 @@ import fire
 
 from denoising.export import export_onnx
 from denoising.training import train_model
+from scripts.infer_triton import infer_triton as infer
 
 
 def _add_src_to_path():
@@ -54,6 +55,11 @@ def export_onnx_cmd(
     export_onnx(model_name=model, ckpt_path=ckpt_path, output_path=output_path)
 
 
+def infer_triton(model_name: str = "nafnet", sample_idx: int = 0):
+    """Run inference on test set via Triton Inference Server."""
+    infer(model_name=model_name, sample_idx=sample_idx)
+
+
 if __name__ == "__main__":
     if os.getenv("DEBUG"):
         os.environ["HYDRA_FULL_ERROR"] = "1"
@@ -62,6 +68,9 @@ if __name__ == "__main__":
             "train": train,
             "export": {
                 "onnx": export_onnx_cmd,
+            },
+            "infer": {
+                "triton": infer_triton,
             },
         }
     )
