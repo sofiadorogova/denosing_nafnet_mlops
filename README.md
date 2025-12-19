@@ -1,5 +1,21 @@
 # NAFNet Denoiser — MLOps Pipeline
 
+## _Project Overview: Real-World Image Denoising with NAFNet_
+
+This project implements an end-to-end MLOps pipeline for real-image denoising — a critical task in computational photography, especially for low-light smartphone imaging.
+
+# _Problem Statement_
+
+Images captured by smartphone cameras under poor lighting suffer from realistic, signal-dependent noise (Poisson-Gaussian + color artifacts), which cannot be modeled by simple synthetic noise. Traditional denoisers (e.g., BM3D) underperform on such data, whereas deep learning approaches trained on real paired data achieve significantly higher fidelity.
+
+We address this using NAFNet ([Nonlinear Activation-Free Network, Chen et al., 2022](https://github.com/megvii-research/NAFNet)) — a state-of-the-art architecture that:
+
+Replaces ReLU-based nonlinearities with SimpleGate units (lightweight, differentiable gating),
+Eliminates explicit nonlinear activations in deep blocks --> better gradient flow,
+Achieves SOTA PSNR/SSIM with ~2.5× fewer parameters than prior models,
+Is highly suitable for mobile and edge deployment (low-latency, small footprint).
+As a baseline, we include DnCNN ([Zhang et al., 2017](https://github.com/cszn/DnCNN/tree/master/model)), a classic residual CNN for image denoising.
+
 ## Setup
 
 ```bash
